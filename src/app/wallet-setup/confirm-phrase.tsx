@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
-import { useDebouncedNavigation } from '@/hooks/use-debounced-navigation';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ChevronLeft } from 'lucide-react-native';
 import { colors } from '@/constants/colors';
+import { useDebouncedNavigation } from '@/hooks/use-debounced-navigation';
+import { useLocalSearchParams } from 'expo-router';
+import { ChevronLeft } from 'lucide-react-native';
+import React, { useEffect, useState } from 'react';
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface WordPosition {
   position: number;

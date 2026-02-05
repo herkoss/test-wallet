@@ -33,4 +33,24 @@ export const clearAvatar = async () => {
   await AsyncStorage.removeItem(STORAGE_KEY_AVATAR);
 };
 
+// Per-account avatar helpers
+const ACCOUNT_AVATAR_PREFIX = 'wallet_avatar_';
+
+export const getAccountAvatar = async (accountId: string) => {
+  const stored = await AsyncStorage.getItem(`${ACCOUNT_AVATAR_PREFIX}${accountId}`);
+  if (stored) {
+    const id = parseInt(stored, 10);
+    return avatarOptions[id - 1] || avatarOptions[0];
+  }
+  return avatarOptions[0];
+};
+
+export const setAccountAvatar = async (accountId: string, avatarId: number) => {
+  await AsyncStorage.setItem(`${ACCOUNT_AVATAR_PREFIX}${accountId}`, JSON.stringify(avatarId));
+};
+
+export const clearAccountAvatar = async (accountId: string) => {
+  await AsyncStorage.removeItem(`${ACCOUNT_AVATAR_PREFIX}${accountId}`);
+};
+
 export default avatarOptions;

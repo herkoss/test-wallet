@@ -1,3 +1,8 @@
+import AccountSwitchingOverlay from '@/components/account-switching-overlay';
+import getChainsConfig from '@/config/get-chains-config';
+import { colors } from '@/constants/colors';
+import { AccountProvider } from '@/contexts/account-context';
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { DarkTheme, ThemeProvider as NavigationThemeProvider } from '@react-navigation/native';
 import { WalletProvider, WDKService } from '@tetherto/wdk-react-native-provider';
 import { ThemeProvider } from '@tetherto/wdk-uikit-react-native';
@@ -8,9 +13,7 @@ import { useEffect } from 'react';
 import { View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
-import getChainsConfig from '@/config/get-chains-config';
 import { Toaster } from 'sonner-native';
-import { colors } from '@/constants/colors';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -56,17 +59,22 @@ export default function RootLayout() {
             enableCaching: true,
           }}
         >
-          <NavigationThemeProvider value={CustomDarkTheme}>
-            <View style={{ flex: 1, backgroundColor: colors.background }}>
-              <Stack
-                screenOptions={{
-                  headerShown: false,
-                  contentStyle: { backgroundColor: colors.background },
-                }}
-              />
-              <StatusBar style="light" />
-            </View>
-          </NavigationThemeProvider>
+          <AccountProvider>
+            <BottomSheetModalProvider>
+              <NavigationThemeProvider value={CustomDarkTheme}>
+                <View style={{ flex: 1, backgroundColor: colors.background }}>
+                  <Stack
+                    screenOptions={{
+                      headerShown: false,
+                      contentStyle: { backgroundColor: colors.background },
+                    }}
+                  />
+                  <AccountSwitchingOverlay />
+                  <StatusBar style="light" />
+                </View>
+              </NavigationThemeProvider>
+            </BottomSheetModalProvider>
+          </AccountProvider>
         </WalletProvider>
         <Toaster
           offset={90}

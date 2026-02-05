@@ -1,17 +1,19 @@
-import { useWallet } from '@tetherto/wdk-react-native-provider';
+import { colors } from '@/constants/colors';
+import { useAccount } from '@/contexts/account-context';
 import { useDebouncedNavigation } from '@/hooks/use-debounced-navigation';
+import * as accountStorage from '@/services/account-storage';
+import getErrorMessage from '@/utils/get-error-message';
+import { useWallet } from '@tetherto/wdk-react-native-provider';
 import { Fingerprint, Shield } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import parseWorkletError from '@/utils/parse-worklet-error';
-import { colors } from '@/constants/colors';
-import getErrorMessage from '@/utils/get-error-message';
 
 export default function AuthorizeScreen() {
   const insets = useSafeAreaInsets();
   const router = useDebouncedNavigation();
-  const { wallet, unlockWallet } = useWallet();
+  const { wallet, unlockWallet, createWallet } = useWallet();
+  const { activeAccount } = useAccount();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,9 +37,23 @@ export default function AuthorizeScreen() {
       if (isDone) {
         router.replace('/wallet');
       }
-    } catch (error) {
-      console.error('Failed to unlock wallet:', error);
-      setError(getErrorMessage(error, 'Failed to unlock wallet'));
+    } catch (unlockError) {
+      // Fallback: try recovering from our external keychain store
+      if (activeAccount) {
+        try {
+          const seed = await accountStorage.retrieveSeed(activeAccount.id);
+          if (seed) {
+            await createWallet({ name: activeAccount.name, mnemonic: seed });
+            router.replace('/wallet');
+            return;
+          }
+        } catch (fallbackError) {
+          console.error('Fallback auth also failed:', fallbackError);
+        }
+      }
+
+      console.error('Failed to unlock wallet:', unlockError);
+      setError(getErrorMessage(unlockError, 'Failed to unlock wallet'));
       return;
     } finally {
       setIsLoading(false);

@@ -3,7 +3,7 @@ const getChainsConfig = () => {
     ethereum: {
       chainId: 1,
       blockchain: 'ethereum',
-      provider: 'https://eth.merkle.io',
+      provider: 'https://ethereum-rpc.publicnode.com',
       bundlerUrl: 'https://api.candide.dev/public/v3/ethereum',
       paymasterUrl: 'https://api.candide.dev/public/v3/ethereum',
       paymasterAddress: '0x8b1f6cb5d062aa2ce8d581942bbb960420d875ba',
@@ -13,7 +13,21 @@ const getChainsConfig = () => {
       bridgeMaxFee: 5000000,
       paymasterToken: {
         address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
-      }
+      },
+    },
+    ethereum2: {
+      chainId: 11155111,
+      blockchain: 'ethereum',
+      provider: 'https://sepolia.drpc.org',
+      bundlerUrl: 'https://public.pimlico.io/v2/11155111/rpc',
+      paymasterUrl: 'https://public.pimlico.io/v2/11155111/rpc',
+      paymasterAddress: '0x777777777777AeC03fd955926DbF81597e66834C',
+      entryPointAddress: '0x0000000071727De22E5E9d8BAf0edAc6f37da032',
+      safeModulesVersion: '0.3.0',
+      paymasterToken: {
+        address: '0xd077a400968890eacc75cdc901f0356c943e4fdb', // USDT Sepolia
+      },
+      transferMaxFee: 100000,
     },
     arbitrum: {
       chainId: 42161,

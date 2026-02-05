@@ -1,11 +1,12 @@
 import avatarOptions, { setAvatar } from '@/config/avatar-options';
+import { colors } from '@/constants/colors';
+import { useAccount } from '@/contexts/account-context';
+import { useDebouncedNavigation } from '@/hooks/use-debounced-navigation';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useWallet } from '@tetherto/wdk-react-native-provider';
 import { useLocalSearchParams } from 'expo-router';
-import { useDebouncedNavigation } from '@/hooks/use-debounced-navigation';
 import { ChevronLeft } from 'lucide-react-native';
 import React, { useState } from 'react';
-import { colors } from '@/constants/colors';
 import {
   ActivityIndicator,
   Alert,
@@ -27,6 +28,7 @@ export default function ImportNameWalletScreen() {
   const params = useLocalSearchParams();
   const insets = useSafeAreaInsets();
   const { createWallet } = useWallet();
+  const { isAddingAccount, addAccount, setIsAddingAccount } = useAccount();
   const [walletName, setWalletName] = useState('');
   const [selectedAvatar, setSelectedAvatar] = useState(avatarOptions[0]);
   const [isImporting, setIsImporting] = useState(false);
@@ -43,11 +45,26 @@ export default function ImportNameWalletScreen() {
     setIsImporting(true);
 
     try {
-      // Use the context's createWallet method which handles everything including unlocking
-      await createWallet({ name: walletName, mnemonic: seedPhrase });
-      await setAvatar(selectedAvatar.id);
+      if (isAddingAccount) {
+        // Multi-account: register through AccountContext
+        await addAccount({
+          name: walletName,
+          mnemonic: seedPhrase,
+          avatarId: selectedAvatar.id,
+          setActive: true,
+        });
+      } else {
+        // First wallet: use WDK directly (migration will pick it up)
+        await createWallet({ name: walletName, mnemonic: seedPhrase });
+        await setAvatar(selectedAvatar.id);
+      }
 
-      toast.success('Your wallet has been imported successfully.');
+      setIsAddingAccount(false);
+      toast.success(
+        isAddingAccount
+          ? 'Account has been imported successfully.'
+          : 'Your wallet has been imported successfully.'
+      );
 
       navigation.dispatch(
         CommonActions.reset({

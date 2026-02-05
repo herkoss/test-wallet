@@ -1,20 +1,22 @@
+import { setAvatar as setLegacyAvatar } from '@/config/avatar-options';
+import { colors } from '@/constants/colors';
+import { useAccount } from '@/contexts/account-context';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useWallet } from '@tetherto/wdk-react-native-provider';
 import { useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors } from '@/constants/colors';
 
 export default function CompleteScreen() {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-  const params = useLocalSearchParams<{ walletName: string; mnemonic: string }>();
+  const params = useLocalSearchParams<{ walletName: string; mnemonic: string; avatar?: string }>();
   const { createWallet, isLoading } = useWallet();
+  const { isAddingAccount, addAccount, setIsAddingAccount } = useAccount();
   const [walletCreated, setWalletCreated] = useState(false);
 
   useEffect(() => {
-    // Auto-create wallet when screen loads
     createWalletWithWDK();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -25,12 +27,21 @@ export default function CompleteScreen() {
     try {
       const walletName = params.walletName || 'My Wallet';
       const mnemonic = params.mnemonic.split(',').join(' ');
+      const avatarId = params.avatar ? parseInt(params.avatar, 10) : 1;
 
-      // Use the wallet context to create the wallet
-      await createWallet({
-        name: walletName,
-        mnemonic,
-      });
+      if (isAddingAccount) {
+        // Multi-account: register through AccountContext
+        await addAccount({
+          name: walletName,
+          mnemonic,
+          avatarId,
+          setActive: true,
+        });
+      } else {
+        // First wallet: use WDK directly, save legacy avatar for migration
+        await createWallet({ name: walletName, mnemonic });
+        await setLegacyAvatar(avatarId);
+      }
 
       setWalletCreated(true);
     } catch (error) {
@@ -48,7 +59,7 @@ export default function CompleteScreen() {
       Alert.alert('Please Wait', 'Wallet is still being created...');
       return;
     }
-    // Reset navigation stack completely - only wallet screen will remain
+    setIsAddingAccount(false);
     navigation.dispatch(
       CommonActions.reset({
         index: 0,

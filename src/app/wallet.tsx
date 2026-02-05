@@ -1,10 +1,19 @@
+import AccountSwitcher from '@/components/account-switcher';
 import { BalanceLoader } from '@/components/BalanceLoader';
+import { colors } from '@/constants/colors';
+import { useAccount } from '@/contexts/account-context';
+import { useDebouncedNavigation } from '@/hooks/use-debounced-navigation';
+import useWalletAvatar from '@/hooks/use-wallet-avatar';
+import formatAmount from '@/utils/format-amount';
+import formatTokenAmount from '@/utils/format-token-amount';
+import formatUSDValue from '@/utils/format-usd-value';
+import BottomSheet from '@gorhom/bottom-sheet';
 import { AssetTicker, useWallet } from '@tetherto/wdk-react-native-provider';
 import { Balance } from '@tetherto/wdk-uikit-react-native';
-import { useDebouncedNavigation } from '@/hooks/use-debounced-navigation';
 import {
   ArrowDownLeft,
   ArrowUpRight,
+  ChevronDown,
   Palette,
   QrCode,
   Settings,
@@ -27,11 +36,6 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AssetConfig, assetConfig } from '../config/assets';
 import { FiatCurrency, pricingService } from '../services/pricing-service';
-import formatAmount from '@/utils/format-amount';
-import formatTokenAmount from '@/utils/format-token-amount';
-import formatUSDValue from '@/utils/format-usd-value';
-import useWalletAvatar from '@/hooks/use-wallet-avatar';
-import { colors } from '@/constants/colors';
 
 type AggregatedBalance = ({
   denomination: string;
@@ -66,12 +70,14 @@ export default function WalletScreen() {
     addresses,
     transactions: walletTransactions,
   } = useWallet();
+  const { activeAccount } = useAccount();
   const [refreshing, setRefreshing] = useState(false);
   const [aggregatedBalances, setAggregatedBalances] = useState<AggregatedBalance>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [mounted, setMounted] = useState(false);
   const avatar = useWalletAvatar();
   const scrollY = useRef(new Animated.Value(0)).current;
+  const accountSwitcherRef = useRef<BottomSheet>(null);
 
   const hasWallet = !!wallet;
 
@@ -230,6 +236,14 @@ export default function WalletScreen() {
     router.push('/settings');
   };
 
+  const handleOpenAccountSwitcher = () => {
+    accountSwitcherRef.current?.expand();
+  };
+
+  const handleAddAccount = () => {
+    router.push('/add-account');
+  };
+
   const handleRefresh = async () => {
     if (!wallet) return;
 
@@ -275,12 +289,15 @@ export default function WalletScreen() {
           },
         ]}
       >
-        <View style={styles.walletInfo}>
+        <TouchableOpacity style={styles.walletInfo} onPress={handleOpenAccountSwitcher} activeOpacity={0.7}>
           <View style={styles.walletIcon}>
             <Text style={styles.walletIconText}>{avatar}</Text>
           </View>
-          <Text style={styles.walletName}>{wallet?.name || 'No Wallet'}</Text>
-        </View>
+          <Text style={styles.walletName} numberOfLines={1}>
+            {activeAccount?.name || wallet?.name || 'No Wallet'}
+          </Text>
+          <ChevronDown size={16} color={colors.textSecondary} style={{ marginLeft: 4 }} />
+        </TouchableOpacity>
 
         <View style={styles.headerActions}>
           <TouchableOpacity style={styles.settingsButton} onPress={handleSettingsPress}>
@@ -312,7 +329,7 @@ export default function WalletScreen() {
           ) : (
             <RefreshControl
               refreshing={false}
-              onRefresh={() => {}}
+              onRefresh={() => { }}
               tintColor={colors.white}
               colors={[colors.white]}
               progressViewOffset={0}
@@ -479,6 +496,9 @@ export default function WalletScreen() {
           <Text style={styles.actionButtonText}>Receive</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Account Switcher */}
+      <AccountSwitcher bottomSheetRef={accountSwitcherRef} onAddAccount={handleAddAccount} />
     </View>
   );
 }

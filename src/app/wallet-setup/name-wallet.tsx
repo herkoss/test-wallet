@@ -1,4 +1,5 @@
 import avatarOptions from '@/config/avatar-options';
+import { colors } from '@/constants/colors';
 import { useDebouncedNavigation } from '@/hooks/use-debounced-navigation';
 import { ChevronLeft } from 'lucide-react-native';
 import React, { useState } from 'react';
@@ -13,7 +14,6 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors } from '@/constants/colors';
 
 export default function NameWalletScreen() {
   const router = useDebouncedNavigation();
@@ -22,10 +22,9 @@ export default function NameWalletScreen() {
   const [selectedAvatar, setSelectedAvatar] = useState(avatarOptions[0]);
 
   const handleNext = () => {
-    // Pass wallet name to next screen
     router.push({
       pathname: './secure-wallet',
-      params: { walletName, avatar: selectedAvatar.emoji },
+      params: { walletName, avatar: String(selectedAvatar.id) },
     });
   };
 

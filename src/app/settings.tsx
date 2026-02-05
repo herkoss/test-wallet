@@ -1,22 +1,24 @@
 import Header from '@/components/header';
 import { clearAvatar } from '@/config/avatar-options';
 import { networkConfigs } from '@/config/networks';
+import { colors } from '@/constants/colors';
+import { useAccount } from '@/contexts/account-context';
+import { useDebouncedNavigation } from '@/hooks/use-debounced-navigation';
 import useWalletAvatar from '@/hooks/use-wallet-avatar';
 import getDisplaySymbol from '@/utils/get-display-symbol';
 import { NetworkType, useWallet } from '@tetherto/wdk-react-native-provider';
 import * as Clipboard from 'expo-clipboard';
-import { useDebouncedNavigation } from '@/hooks/use-debounced-navigation';
 import { Copy, Info, Shield, Trash2, Wallet } from 'lucide-react-native';
 import React from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
-import { colors } from '@/constants/colors';
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const router = useDebouncedNavigation();
   const { wallet, clearWallet, addresses } = useWallet();
+  const { activeAccount } = useAccount();
   const avatar = useWalletAvatar();
 
   const handleDeleteWallet = () => {
@@ -81,7 +83,7 @@ export default function SettingsScreen() {
           <View style={styles.infoCard}>
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Name</Text>
-              <Text style={styles.infoValue}>{wallet?.name || 'Unknown'}</Text>
+              <Text style={styles.infoValue}>{activeAccount?.name || wallet?.name || 'Unknown'}</Text>
             </View>
 
             <View style={styles.infoRow}>
